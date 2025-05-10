@@ -71,7 +71,7 @@ function Dashboard() {
           <Font family='Roboto'>
           <div style={styles.container}>
             <img
-                  src="src/dashboard/image/IoT-Water-Flow-Meter-A-Novel-Water-Meter-Based-On-IoT-Primary-image.jpg"
+                  src="/file.svg"
                   alt="Gauge Icon"
                   style={styles.gaugeImage}
                   
