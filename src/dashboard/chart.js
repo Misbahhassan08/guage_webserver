@@ -39,20 +39,21 @@ const ChartLine = ({ labels, values, label }) => {
     }
   }, [])
 
-  const data = {
-    labels,
-    datasets: [
-      {
-        label,
-        backgroundColor: 'rgba(100, 200, 220, 0.2)',
-        borderColor: 'rgba(100, 200, 220, 1)',
-        pointBackgroundColor: 'rgba(100, 200, 220, 1)',
-        pointBorderColor: '#fff',
-        data: values,
-        fill: true,
-      },
-    ],
-  }
+const data = {
+  labels,
+  datasets: [
+    {
+      label,
+      backgroundColor: 'rgba(100, 200, 220, 0.2)',
+      borderColor: 'rgba(100, 200, 220, 1)',
+      data: values,
+      fill: true,
+      pointRadius: 0,         // Hides the dots
+      pointHoverRadius: 0,    // Prevents dots on hover
+    },
+  ],
+}
+
 
   const options = {
     plugins: {

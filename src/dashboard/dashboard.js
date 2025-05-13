@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import GaugeComponent from "react-gauge-component";
 import ChartLine from "./chart";
 import Header from "./header";
-import Font, {Text} from 'react-font'
-import { height } from "@mui/system";
+import meter from "./image/meter.svg";
+import { Box, Typography } from "@mui/material";
+import { Speed, SpeedTwoTone, Water, WaterDrop, WaterTwoTone } from "@mui/icons-material";
 
 function Dashboard() {
   const [gaugeValue, setGaugeValue] = useState(0);
@@ -19,13 +20,13 @@ function Dashboard() {
         const response = await fetch("https://guage-control-530056698.us-central1.run.app/create-metadata/");
         const data = await response.json();
         if (data && data.length > 0) {
-          const latestData = data[0];
-          setGaugeValue(latestData.Value);
-          setVelocity(latestData.Velocity);
-          setFlow(latestData.Flow);
+          const latest = data[0];
+          setGaugeValue(latest.Value);
+          setVelocity(latest.Velocity);
+          setFlow(latest.Flow);
         }
       } catch (error) {
-        console.error("Error fetching gauge value:", error);
+        console.error("Gauge fetch error:", error);
       }
     };
 
@@ -35,208 +36,213 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchHistory = async () => {
       try {
         const response = await fetch("https://guage-control-530056698.us-central1.run.app/create-metadata/");
         const result = await response.json();
-        const sorted = [...result].sort(
-          (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
-        );
-        const timeLabels = sorted.map(item =>
-          new Date(item.timestamp).toLocaleTimeString()
-        );
-        const velocities = sorted.map(item => item.Velocity);
-        const flows = sorted.map(item => item.Flow);
-        setTimestamps(timeLabels);
-        setVelocityData(velocities);
-        setFlowData(flows);
+        const sorted = [...result].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const labels = sorted.map((item) => new Date(item.timestamp).toLocaleTimeString());
+        setTimestamps(labels);
+        setVelocityData(sorted.map((item) => item.Velocity));
+        setFlowData(sorted.map((item) => item.Flow));
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("History fetch error:", err);
       }
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, 5000);
+    fetchHistory();
+    const interval = setInterval(fetchHistory, 5000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div style={{ width: "100%" }}>
-      
-      <Header />
-      <div style={styles.container}>
-        
-        {/* Gauge Card */}
-        <div style={styles.card}>
-          <Font family='Roboto'>
-          <div style={styles.container}>
-            <img
-                  src="/file.svg"
-                  alt="Gauge Icon"
-                  style={styles.gaugeImage}
-                  
-                />
+<Box sx={{ width: "100%", p: 2, mt: 10, overflowX: 'hidden' }}>
+  {/* Top Grid Section */}
+  <Box
+    sx={{
+      display: "flex",
+      flexWrap: "wrap", // Allows wrapping on smaller screens
+      gap: 3,
+      mb: 4,
+      justifyContent: "center",
+    }}
+  >
+    {/* Meter Image */}
+    <Box
+      sx={{
+        flex: "1 1 300px", // Flex-grow, shrink, basis
+        minWidth: 280,
+        maxWidth: 400,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      <Box
+        component="img"
+        src={meter}
+        alt="Meter"
+        sx={{
+          width: "100%",
+          height: "auto",
+          borderRadius: 2,
+          boxShadow: 2,
+          maxHeight: 285,
+          objectFit: "contain",
+        }}
+      />
+    </Box>
 
-            <div style={styles.boxesContainer}>
-              <div style={styles.box1}>
-                
-                <h2>{velocity}</h2>
-                <p>Velocity: m/s</p>
-                
-              </div>
-              <div style={styles.box2}>
-                <h2>{flow}</h2>
-                <p>Flow: L/min</p>
-              </div>
-              <div style={styles.box3}>
-                <h2>{gaugeValue}</h2>
-                <p>Value: {gaugeValue}</p>
-              </div>
-            </div>
-            </div>
-            <div style={styles.gaugeContainer}>
-              <div style={{ width: "60%", height:"50%", margin: "1rem auto" }}>
-                <GaugeComponent
-                  value={gaugeValue}
-                  type="radial"
-                  labels={{
-                    tickLabels: {
-                      type: "inner",
-                      ticks: [
-                        { value: 20 },
-                        { value: 40 },
-                        { value: 60 },
-                        { value: 80 },
-                        { value: 100 },
-                      ],
-                    },
-                  }}
-                  arc={{
-                    colorArray: ["#5BE12C", "#EA4228"],
-                    subArcs: [{ limit: 10 }, { limit: 30 }, {}, {}, {}],
-                    padding: 0.02,
-                    width: 0.3,
-                  }}
-                  pointer={{
-                    elastic: true,
-                    animationDelay: 0,
-                  }}
-                />
-                <p style={{ textAlign: "center" }}>Current Usage: <h2>{gaugeValue}%</h2></p>
-              </div>
-            </div>
-          </Font>
-        </div>
-        
+    {/* Info Cards */}
+    <Box
+      sx={{
+        flex: "2 1 300px",
+        minWidth: 280,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      {[{
+        value: velocity, label: "Velocity: m/s", Icon: Speed, bg: "rgba(16,192,163,0.77)"
+      }, {
+        value: flow, label: "Flow: m³/hr", Icon: Water, bg: "rgba(151,16,192,0.54)"
+      }, {
+        value: gaugeValue, label: "Cumulative Total", Icon: WaterDrop, bg: "rgba(192,116,16,0.54)"
+      }].map(({ value, label, Icon, bg }, i) => (
+        <Box
+          key={i}
+          sx={{
+            bgcolor: bg,
+            p: 2,
+            borderRadius: 2,
+            boxShadow: 1,
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+          }}
+        >
+          <Icon fontSize="large" />
+          <Box>
+            <Typography variant="h5">{value}</Typography>
+            <Typography variant="body2">{label}</Typography>
+          </Box>
+        </Box>
+      ))}
+    </Box>
 
-        {/* Info Boxes + Charts */}
-        <div style={{ ...styles.card, width: "100%" }}>
-          <Font family='Roboto'>
-        
-          <div style={styles.graphsContainer}>
-            <div style= {styles.graph1}>
-              <ChartLine labels={timestamps} values={velocityData} label="Velocity" />
-            </div>
-            <div style={styles.graph1}>
-              <ChartLine labels={timestamps} values={flowData} label="Flow" />
-            </div>
-          </div>
-          </Font>
-        </div>
-        
-      </div>
-      
-    </div>
+    {/* Extra Info Cards */}
+    <Box
+      sx={{
+        flex: "1 1 300px",
+        minWidth: 280,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      {[{
+        value: velocity, label: "Velocity: m/s", bg: "rgba(235, 255, 252, 0.77)"
+      }, {
+        value: flow, label: "Flow: m³/hr", bg: "rgba(245, 217, 253, 0.54)"
+      }, {
+        value: gaugeValue, label: "Cumulative Total", bg: "rgba(250, 239, 224, 0.54)"
+      }].map(({ value, label, bg }, i) => (
+        <Box
+          key={i}
+          sx={{
+            bgcolor: bg,
+            p: 2,
+            borderRadius: 2,
+            boxShadow: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-around",
+          }}
+        >
+          <Box>
+            <Typography variant="h5">{value}</Typography>
+            <Typography variant="body2">{label}</Typography>
+          </Box>
+        </Box>
+      ))}
+    </Box>
+
+    {/* Gauge Meter */}
+    <Box
+      sx={{
+        flex: "2 1 300px",
+        minWidth: 280,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 2,
+        boxShadow: 2,
+        p: 2,
+      }}
+    >
+      <GaugeComponent
+        value={gaugeValue}
+        type="radial"
+        labels={{
+          tickLabels: {
+            type: "inner",
+            ticks: [
+              { value: 20 },
+              { value: 40 },
+              { value: 60 },
+              { value: 80 },
+              { value: 100 },
+            ],
+          },
+        }}
+        arc={{
+          colorArray: ["#5BE12C", "#EA4228"],
+          subArcs: [{ limit: 10 }, { limit: 30 }, {}, {}, {}],
+          padding: 0.02,
+          width: 0.3,
+        }}
+        pointer={{ elastic: true, animationDelay: 0 }}
+      />
+    </Box>
+  </Box>
+
+  {/* Charts Section */}
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: { xs: "column", md: "row" },
+      gap: 3,
+      mt: 4,
+    }}
+  >
+    {[{
+      title: "Daily Consumption",
+      values: flowData,
+      label: "Flow",
+    }, {
+      title: "Velocity (Realtime)",
+      values: velocityData,
+      label: "Velocity",
+    }].map((chart, idx) => (
+      <Box
+        key={idx}
+        sx={{
+          flex: 1,
+          minWidth: 280,
+          borderRadius: 2,
+          boxShadow: 2,
+          p: 2,
+        }}
+      >
+        <Typography variant="h6" gutterBottom>{chart.title}</Typography>
+        <ChartLine labels={timestamps} values={chart.values} label={chart.label} />
+      </Box>
+    ))}
+  </Box>
+</Box>
+
   );
 }
-
-const styles = {
-  graph1: {
-    width: "100%",
-    height:"50%"
-  },
-  container: {
-    display: "flex",
-    flexDirection: "row",
-    gap: "2rem",
-    padding: "2rem",
-    width: "100%",
-    boxSizing: "border-box",
-    marginTop: "70px",
-  },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: "10px",
-    padding: "1rem",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    width: "100%",
-  },
-  colcard: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "2rem",
-    padding: "2rem",
-    width: "100%",
-    boxSizing: "border-box",
-    marginTop: "70px",
-  },
-  gaugeContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "78%",
-    height:"30%"
-  },
-  gaugeImage: {
-    width: "50%",  // You can adjust the size of the image here
-    height: "20%",
-    marginBottom: "1rem",  // Space between image and gauge
-    borderRadius: "8px",
-    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.57)",
-    flex: 1,
-  },
-  boxesContainer: {
-    display: "flex",
-    flexDirection: "row",
-    gap: "1rem",
-    marginBottom: "1rem",
-    width: "50%",
-  },
-  box1: {
-    backgroundColor: "rgba(16, 192, 163, 0.77)",
-    borderRadius: "8px",
-    padding: "1rem",
-    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
-    flex: 1,
-    
-  },
-  box2: {
-    backgroundColor: "rgba(151, 16, 192, 0.54)",
-    borderRadius: "8px",
-    padding: "1rem",
-    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
-    flex: 1,
-  },
-  box3: {
-    backgroundColor: "rgba(192, 116, 16, 0.54)",
-    borderRadius: "8px",
-    padding: "1rem",
-    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
-    flex: 1,
-  },
-  graphsContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "2rem",
-    width: "100%",
-  },
-  graphCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: "10px",
-    padding: "1rem",
-    height: "100px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-  },
-};
 
 export default Dashboard;
