@@ -5,6 +5,8 @@ import Header from "./header";
 import meter from "./image/meter.svg";
 import { Box, Typography } from "@mui/material";
 import { Speed, SpeedTwoTone, Water, WaterDrop, WaterTwoTone } from "@mui/icons-material";
+import DashboardTable from "./table/dashboardtable";
+import DashboardMap from "./maps/dashboardmap";
 
 function Dashboard() {
   const [gaugeValue, setGaugeValue] = useState(0);
@@ -13,6 +15,9 @@ function Dashboard() {
   const [velocityData, setVelocityData] = useState([]);
   const [flowData, setFlowData] = useState([]);
   const [timestamps, setTimestamps] = useState([]);
+
+    const [latitude, setLatitude] = useState(33.6844);
+  const [longitude, setLongitude] = useState(73.0479);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -116,7 +121,7 @@ function Dashboard() {
             bgcolor: bg,
             p: 2,
             borderRadius: 2,
-            boxShadow: 1,
+            boxShadow: 2,
             display: "flex",
             gap: 1,
             alignItems: "center",
@@ -154,7 +159,7 @@ function Dashboard() {
             bgcolor: bg,
             p: 2,
             borderRadius: 2,
-            boxShadow: 1,
+            boxShadow: 2,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-around",
@@ -235,10 +240,29 @@ function Dashboard() {
           p: 2,
         }}
       >
-        <Typography variant="h6" gutterBottom>{chart.title}</Typography>
+        <Typography variant="body1" fontWeight={"bold"} gutterBottom>{chart.title}</Typography>
         <ChartLine labels={timestamps} values={chart.values} label={chart.label} />
       </Box>
     ))}
+  </Box>
+  <Box mt={4} sx={{display:'flex', flexDirection:'row', columnGap:2}}>
+  <Box  sx={{ flex:'7',         borderRadius: 2,
+          boxShadow: 2,}} >
+
+    <DashboardTable/>
+  </Box>
+  <Box sx={{borderRadius:2, boxShadow:2, flex:'3',}}>
+     
+   
+      <DashboardMap
+        latitude={latitude}
+        longitude={longitude}
+        setLatitude={setLatitude}
+        setLongitude={setLongitude}
+      />
+   
+    
+  </Box>
   </Box>
 </Box>
 
